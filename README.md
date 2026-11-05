@@ -141,6 +141,8 @@ The remaining variables in `apps/storefront/.env.example` are optional and only 
 
 - **Redis uses port 6380 on the host.** This avoids a clash with any Redis already running on 6379. Inside the container it is still 6379.
 - **New regions need a storefront cache reset.** The storefront keeps `/store/regions` in a cache that survives restarts. If a page under a new region's URL returns 404, stop the storefront, delete `apps/storefront/.next` and start it again.
+- **Product edits take about a minute to reach product pages.** The storefront caches product data for 60 seconds, so a new price or stock level can show late on a product page. Store listings read the search index and update within seconds. In dev, Ctrl+Shift+R skips the cache.
+- **Categories and collections use a cache with no time limit.** New ones can need the same cache reset as new regions.
 - **A new currency needs a search index change.** Store listings read prices from the search index, which only holds the currencies listed in `PRICE_CURRENCIES` (`apps/backend/src/search/helpers/pricing.ts`) and `SEARCH_PRICE_CURRENCIES` (`apps/storefront/src/lib/search-client.ts`). Keep the two in sync, then run `npx medusa db:migrate` from `apps/backend`.
 - **The Europe region is demo data.** It comes from the initial seed. It can be browsed at `/dk`, but the setup script takes its warehouse off the sales channel so that Pakistan orders reserve Pakistan stock, which means it has no shipping options at checkout. Remove it and the demo products when the real catalog goes in.
 - **COD has placeholder wording.** Checkout shows the provider as "Manual Payment" with a "for testing purposes" badge until the COD work replaces it.

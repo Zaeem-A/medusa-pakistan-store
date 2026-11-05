@@ -14,6 +14,11 @@ type ProductListQueryParams = (HttpTypes.FindParams &
   option_value_id?: string | string[]
 }
 
+// How long a product response can be served from the Next.js cache. Without a
+// limit, `force-cache` keeps it until something clears it, so prices and stock
+// edited in the admin would not reach product pages.
+const PRODUCT_CACHE_SECONDS = 60
+
 export const listProducts = async ({
   pageParam = 1,
   queryParams,
@@ -58,6 +63,7 @@ export const listProducts = async ({
 
   const next = {
     ...(await getCacheOptions("products")),
+    revalidate: PRODUCT_CACHE_SECONDS,
   }
 
   return sdk.client
