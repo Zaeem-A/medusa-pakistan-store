@@ -48,13 +48,16 @@ async function getRegionMap(cacheId: string) {
       return new Map<string, HttpTypes.StoreRegion>()
     }
 
-    // Create a map of country codes to regions.
+    // Create a map of country codes to regions. Built fresh and swapped in, so
+    // countries removed in the admin stop being served after the refresh.
+    const freshRegionMap = new Map<string, HttpTypes.StoreRegion>()
     regions.forEach((region: HttpTypes.StoreRegion) => {
       region.countries?.forEach((c) => {
-        regionMapCache.regionMap.set(c.iso_2 ?? "", region)
+        freshRegionMap.set(c.iso_2 ?? "", region)
       })
     })
 
+    regionMapCache.regionMap = freshRegionMap
     regionMapCache.regionMapUpdated = Date.now()
   }
 
