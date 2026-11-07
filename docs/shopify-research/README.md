@@ -2,7 +2,7 @@
 
 What Shopify and real Shopify shops offer, what Medusa 2.22.2 already has, and what we would have to build for a Pakistan Cash on Delivery store. Research only: nothing here has been implemented.
 
-Researched 2026-11-05 and 2026-11-06. Each area has its own report, listed in the feature table below. Sizes, sources and details are in the reports.
+Researched 2026-11-05 to 2026-11-07. Each area has its own report, listed in the feature table below. Sizes, sources and details are in the reports.
 
 ## Fix first: two security issues
 
@@ -15,7 +15,7 @@ Also, every admin user can do everything. Staff roles need a paid Medusa Enterpr
 
 ## What to build, in order
 
-This ordering is the coordinator's synthesis of the 17 reports' recommendations.
+This ordering is the coordinator's synthesis of the 18 reports' recommendations.
 
 ### Before the first real order
 
@@ -38,7 +38,8 @@ These fix things that are wrong or unsafe today, or that every COD order needs.
 4. **Customer messages.** One email provider sending order confirmation, shipping and cancel emails, or at least honest copy until then (10).
 5. **Shipping.** Book in the courier's portal and type the tracking number (CN) into Medusa's shipment form. Add a track-order page using order number plus phone, and show tracking on the order page (02).
 6. **Packing slip printing** (16).
-7. **Paperwork that takes weeks, so start now.**
+7. **Catalog attributes.** Agree the attributes every product carries, such as fabric, piece count, cut, season and colour, and tag products as they are loaded. The launch filters depend on them, and tagging later is costly. This is data work, not code (06, 18).
+8. **Paperwork that takes weeks, so start now.**
    - Open a courier merchant account (02).
    - Apply to Safepay and PayFast (03).
    - Start Meta verification for the WhatsApp Business Platform (10).
@@ -51,7 +52,7 @@ These fix things that are wrong or unsafe today, or that every COD order needs.
    - Roman Urdu synonyms such as kameez and qameez.
    - Category and collection pages on the search index, with filters and real pagination.
    - A scheduled reindex, a mega menu and a Sale link (06).
-3. Product page: a shared size chart, colour swatches, zoom, sold-out sizes and a low-stock message (07).
+3. Product page: a shared size chart per cut in inches and cm, colour swatches, zoom, sold-out sizes and a low-stock message (07). Unstitched suits list each piece with its fabric and length in metres (18).
 4. Sales through price lists, with sale badges and a reindex when a sale starts. Codes, free shipping over a threshold and buy X get Y are built in (05).
 5. A small content module:
    - A scheduled announcement bar.
@@ -59,7 +60,8 @@ These fix things that are wrong or unsafe today, or that every COD order needs.
    - Editable About, FAQ, contact and policy pages.
    - A store locator if there are shops (13).
 6. Editable SEO fields, GA4, Meta, TikTok and Clarity tags, Meta server-side purchase events, and a first COD outcome report showing delivered, returned and cash collected (14).
-7. A trust badge strip, a fixed related-products row and hand-picked complete-the-look items (08, 09).
+7. A trust strip on the product page with delivery days, the delivery fee and the COD and exchange rules, which Sapphire leaves to its FAQ. A fixed related-products row and hand-picked complete-the-look items (08, 09, 18).
+8. Phone orders entered by staff as draft orders, which are built in (16, 18).
 
 ### Soon after launch
 
@@ -89,14 +91,15 @@ Shop Pay and Shopify Payments look-alikes, which are not available in Pakistan (
 Each report ends with up to three questions. These are the decisions behind them, grouped.
 
 1. **Identity and channel.** Is checkout phone-first with email optional? Is WhatsApp the main customer channel, and which business entity and number go through Meta verification? Transactional messages only, or promotions too (04, 10, 11)?
-2. **COD rules.** How long before an unconfirmed order auto-cancels, and how many calls? Should there be a COD fee or a prepaid discount, and a COD order cap (01, 03)?
-3. **Courier and delivery fee.** Which courier first? Standard cash remittance or upfront COD payment? A flat fee, fees by city, and a free-delivery threshold based on amount, item count or prepaid orders (02, 04)?
+2. **COD rules.** Call every COD order, or only orders above a value, as Sapphire does? How long before an unconfirmed order auto-cancels, and how many calls? Should there be a COD fee or a prepaid discount, and a COD order cap (01, 03, 18)?
+3. **Courier and delivery fee.** Which courier first? Standard cash remittance or upfront COD payment? A flat fee, fees by city, and a free-delivery threshold based on amount, item count or prepaid orders? Does free delivery apply to sale items? Sapphire excludes them (02, 04, 18).
 4. **Business registration.** Is the business registered (NTN, business bank account)? Every gateway application depends on it. Which gateway first, and BNPL or not (03)?
 5. **Returns policy.** Exchange-only, or cash refunds too? Which window? Are sale items final? Who pays return shipping (12)?
 6. **Catalog shape.**
-   - Is each colour its own product, or one product with a colour option?
+   - Is each colour its own product, or one product with a colour option? Sapphire makes each colour its own product, with size as the only option.
+   - Which attributes will every product carry for filters?
    - Will you offer custom stitching?
-   - Will there be sets or packs, and pre-orders (07, 09)?
+   - Will there be sets or packs, and pre-orders (07, 09, 18)?
 7. **Navigation and language.** What is the top-level menu? Urdu script or Roman Urdu only? How should sold-out items show (06, 15)?
 8. **Sales and gift cards.** Are rounded "flat X%" prices fine? Should codes work on sale items? Gift cards in year one (05)?
 9. **Shops and other channels.** Do you have physical shops, and which POS (FBR-linked, with an API)? Are you on Daraz? Do you want a mobile app (13, 17)?
@@ -112,7 +115,8 @@ Each report ends with up to three questions. These are the decisions behind them
 
 The researchers rechecked the scan counts. Use the reports' numbers, not the scan's.
 
-- **Sapphire is not on Shopify.** Its pages are served by Salesforce Commerce Cloud, so the Pakistani Shopify sample is 11 shops, not 12.
+- **Sapphire is not on Shopify.** Its pages are served by Salesforce Commerce Cloud, so the Pakistani Shopify sample is 11 shops, not 12. Old banner images on Shopify's file servers fooled the scan. Report 18 studies Sapphire as a competitor.
+
 Scan counts are written Pakistani/global, out of 12 and 6 shops.
 
 - **Counts that were too high:**
@@ -124,7 +128,7 @@ Scan counts are written Pakistani/global, out of 12 and 6 shops.
 | Currency | 10/4 | No real currency switcher at Pakistani shops | `Shopify.currency` is printed on every page (15) |
 | Language | 11/6 | No language switcher or Urdu at any Pakistani shop | `Shopify.locale` is printed on every page (15) |
 | Gift cards | 6/5 | No Pakistani shop sells gift cards online | Marker only (05) |
-| Pakistani couriers | 6/0 | No shop names its courier | Matches included a SKU (02) |
+| Pakistani couriers | 6/0 | No Shopify shop names its courier. Sapphire, which is not on Shopify, names FastEx, Call Courier and QWQER in its FAQ (18) | Matches included a SKU (02) |
 | BNPL | 8/3 | About 5 of 12 (Baadmay, Yango) | Marker only (03) |
 | Customer photos and Instagram feeds | 5/3 | 1 of 12 (Gul Ahmed), 2 of 6 global | Matched Judge.me settings for a feature that is switched off (08) |
 | Returns | 7/3 | Only footer policy links; no shop has a self-serve portal | Marker only (12) |
@@ -174,6 +178,7 @@ Treat these as likely, and test them before relying on them.
 | 15 | Selling internationally | Partial | Regions and currencies ready; leftover Europe demo data must go | [15](./15-selling-internationally.md) |
 | 16 | Admin and operations | Partial | Basics built; roles need a paid licence; no notes, tags or printing; exports public | [16](./16-admin-and-operations.md) |
 | 17 | Sales channels | Partial | Store pickup mostly built; no POS or Daraz; social shops not open to Pakistan | [17](./17-sales-channels.md) |
+| 18 | Sapphire, a competitor not on Shopify | Not a feature area | One product per colour, size charts per cut, filters by fabric and piece, free delivery from Rs 8,000; email only, no WhatsApp | [18](./18-sapphire-competitor.md) |
 
 ## Parked
 
@@ -193,6 +198,7 @@ Left out because they do not fit a Pakistan Cash on Delivery launch. Tell us if 
    - Global: Allbirds, Gymshark, Fashion Nova, Kylie Cosmetics, MVMT, Brooklinen.
 2. Scanned each shop's homepage, one collection page and, where allowed, one product page for feature markers. Added platform features from Shopify's pricing page and App Store categories.
 3. Gave each of the 17 areas to its own researcher with the shared rules in [BRIEF.md](./BRIEF.md). The rules: read-only on real shops, no orders, forms or logins, no working around blocks, Medusa facts from the installed package docs and docs.medusajs.com, and a source for every claim.
+4. On 2026-11-07, one more researcher studied Sapphire as a competitor not on Shopify, under the same rules with a budget of about 20 pages. It made 18 requests and was not blocked (18).
 
 ### Limits
 
