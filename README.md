@@ -41,7 +41,11 @@ npm ci
 # 5. Apply the Pakistan config. This also fills in the storefront's publishable key.
 npm run setup:pakistan
 
-# 6. Create a local admin user
+# 6. Remove the Europe demo data from step 4. The first command only lists it.
+npm run remove:europe-demo
+CONFIRM_DELETE=1 npm run remove:europe-demo
+
+# 7. Create a local admin user
 (cd apps/backend && npx medusa user -e admin@example.com -p supersecret)
 ```
 
@@ -87,6 +91,19 @@ It is safe to re-run. Everything is looked up first and only created when missin
 The placeholder prices apply only to the four seeded demo products, so a re-run cannot touch real products.
 
 Medusa stores prices in major units, so `2500` means PKR 2,500 and not paisa. PKR has no decimal places in Medusa.
+
+## Removing the Europe demo data
+
+The seed in step 4 also creates a Europe region, a "European Warehouse", tax regions for seven European countries, and EUR and USD store currencies. `apps/backend/src/scripts/remove-europe-demo.ts` deletes them:
+
+```bash
+npm run remove:europe-demo                    # lists what it would delete
+CONFIRM_DELETE=1 npm run remove:europe-demo   # deletes it
+```
+
+It stops without changes if any order uses the Europe region, EUR or USD. Stock reserved at the European Warehouse, for orders placed before `setup:pakistan` unlinked it, is moved to the Pakistan Warehouse first. EUR and USD prices on the demo products are left in place. Nothing uses them once the currencies are gone.
+
+The storefront caches the region list for up to an hour, so removed countries can take that long to leave the sitemap, hreflang tags and country selector.
 
 ## Environment variables
 

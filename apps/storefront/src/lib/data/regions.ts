@@ -4,9 +4,15 @@ import { sdk } from "@lib/config"
 import { HttpTypes } from "@medusajs/types"
 import { getCacheOptions } from "./cookies"
 
+// Regions change rarely, but a region removed in the admin has to leave the
+// storefront without a rebuild. force-cache alone keeps the old list forever.
+// Matches the middleware's refresh interval.
+const REGIONS_REVALIDATE_SECONDS = 3600
+
 export const listRegions = async () => {
   const next = {
     ...(await getCacheOptions("regions")),
+    revalidate: REGIONS_REVALIDATE_SECONDS,
   }
 
   return await sdk.client
@@ -21,6 +27,7 @@ export const listRegions = async () => {
 export const retrieveRegion = async (id: string) => {
   const next = {
     ...(await getCacheOptions(["regions", id].join("-"))),
+    revalidate: REGIONS_REVALIDATE_SECONDS,
   }
 
   return await sdk.client
@@ -32,28 +39,18 @@ export const retrieveRegion = async (id: string) => {
     .then(({ region }) => region)
 }
 
-const regionMap = new Map<string, HttpTypes.StoreRegion>()
-
+// Looked up from listRegions each time, which is cached, rather than kept in a
+// module-level map that would hold on to deleted regions until a restart.
 export const getRegion = async (countryCode: string) => {
-  if (regionMap.has(countryCode)) {
-    return regionMap.get(countryCode)
-  }
-
   const regions = await listRegions()
 
   if (!regions) {
     return null
   }
 
-  regions.forEach((region) => {
-    region.countries?.forEach((c) => {
-      regionMap.set(c?.iso_2 ?? "", region)
-    })
-  })
+  const code = countryCode || "us"
 
-  const region = countryCode
-    ? regionMap.get(countryCode)
-    : regionMap.get("us")
-
-  return region
+  return regions.find((region) =>
+    region.countries?.some((country) => country?.iso_2 === code)
+  )
 }
