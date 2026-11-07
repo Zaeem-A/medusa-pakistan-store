@@ -1,4 +1,4 @@
-import { CreditCard } from "@medusajs/icons"
+import { Cash, CreditCard } from "@medusajs/icons"
 import Bancontact from "@modules/common/icons/bancontact"
 import Ideal from "@modules/common/icons/ideal"
 import PayPal from "@modules/common/icons/paypal"
@@ -25,9 +25,10 @@ export const paymentInfoMap: Record<
     title: "PayPal",
     icon: <PayPal />,
   },
+  // The system provider is how this store takes Cash on Delivery.
   pp_system_default: {
-    title: "Manual Payment",
-    icon: <CreditCard />,
+    title: "Cash on Delivery",
+    icon: <Cash />,
   },
   // Add more payment providers here
 }

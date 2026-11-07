@@ -1,5 +1,6 @@
 import { listProducts } from "@lib/data/products"
 import { getRegion } from "@lib/data/regions"
+import { isVariantInStock } from "@lib/util/inventory"
 import { HttpTypes } from "@medusajs/types"
 import Product from "../product-preview"
 
@@ -8,6 +9,24 @@ type RelatedProductsProps = {
   countryCode: string
 }
 
+const MAX_RELATED = 8
+const MIN_RELATED = 4
+
+// Product pages do not load categories, so fetch them here. The store API
+// returns nothing for "categories.id"; it needs the "*categories" form.
+const getCategoryIds = async (productId: string, countryCode: string) => {
+  const { response } = await listProducts({
+    countryCode,
+    queryParams: { id: [productId], fields: "id,*categories", limit: 1 },
+  })
+
+  return response.products[0]?.categories?.map((category) => category.id) ?? []
+}
+
+// Same category first, then the same collection, leaving out the current
+// product and anything sold out. There is no catch-all fallback: the starter
+// filled the row with any 12 products, and an unrelated row is worse than
+// none.
 export default async function RelatedProducts({
   product,
   countryCode,
@@ -18,29 +37,40 @@ export default async function RelatedProducts({
     return null
   }
 
-  // edit this function to define your related products logic
-  const queryParams: HttpTypes.StoreProductListParams = {}
-  if (region?.id) {
-    queryParams.region_id = region.id
+  const categoryIds = await getCategoryIds(product.id, countryCode)
+
+  const filters: HttpTypes.StoreProductListParams[] = []
+  if (categoryIds.length) {
+    filters.push({ category_id: categoryIds })
   }
   if (product.collection_id) {
-    queryParams.collection_id = [product.collection_id]
+    filters.push({ collection_id: [product.collection_id] })
   }
-  if (product.tags) {
-    queryParams.tag_id = product.tags
-      .map((t) => t.id)
-      .filter(Boolean) as string[]
-  }
-  queryParams.is_giftcard = false
 
-  const products = await listProducts({
-    queryParams,
-    countryCode,
-  }).then(({ response }) => {
-    return response.products.filter(
-      (responseProduct) => responseProduct.id !== product.id
-    )
-  })
+  const related: HttpTypes.StoreProduct[] = []
+
+  for (const filter of filters) {
+    if (related.length >= MIN_RELATED) {
+      break
+    }
+
+    const { response } = await listProducts({
+      countryCode,
+      queryParams: { ...filter, is_giftcard: false, limit: 12 },
+    })
+
+    for (const candidate of response.products) {
+      const alreadyShown =
+        candidate.id === product.id ||
+        related.some((shown) => shown.id === candidate.id)
+
+      if (!alreadyShown && candidate.variants?.some(isVariantInStock)) {
+        related.push(candidate)
+      }
+    }
+  }
+
+  const products = related.slice(0, MAX_RELATED)
 
   if (!products.length) {
     return null

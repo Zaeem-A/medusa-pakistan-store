@@ -1,6 +1,6 @@
 import { Container, Heading, Text } from "@modules/common/components/ui"
 
-import { getPaymentInfo, isStripeLike } from "@lib/constants"
+import { getPaymentInfo, isManual, isStripeLike } from "@lib/constants"
 import Divider from "@modules/common/components/divider"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
@@ -11,6 +11,12 @@ type PaymentDetailsProps = {
 
 const PaymentDetails = ({ order }: PaymentDetailsProps) => {
   const payment = order.payment_collections?.[0].payments?.[0]
+  const amount = payment
+    ? convertToLocale({
+        amount: payment.amount,
+        currency_code: order.currency_code,
+      })
+    : ""
 
   return (
     <div>
@@ -42,12 +48,15 @@ const PaymentDetails = ({ order }: PaymentDetailsProps) => {
                 <Text data-testid="payment-amount">
                   {isStripeLike(payment.provider_id) && payment.data?.card_last4
                     ? `**** **** **** ${payment.data.card_last4}`
-                    : `${convertToLocale({
-                        amount: payment.amount,
-                        currency_code: order.currency_code,
-                      })} paid at ${new Date(
-                        payment.created_at ?? ""
-                      ).toLocaleString()}`}
+                    : isManual(payment.provider_id)
+                      ? `${amount} ${
+                          order.payment_status === "captured"
+                            ? "paid on delivery"
+                            : "to pay on delivery"
+                        }`
+                      : `${amount} paid at ${new Date(
+                          payment.created_at ?? ""
+                        ).toLocaleString()}`}
                 </Text>
               </div>
             </div>

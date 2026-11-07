@@ -1,3 +1,4 @@
+import { join } from "path"
 import { defineConfig, loadEnv } from "@medusajs/framework/utils"
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
@@ -59,6 +60,72 @@ const redisModules = redisUrl
     ]
   : []
 
+/**
+ * File storage. Private files include order exports, which hold customer
+ * names, phone numbers and addresses.
+ *
+ * - With S3_BUCKET set, files go to S3 and private files get presigned links
+ *   that expire (one hour by default).
+ * - Without it, Medusa's local provider keeps private files in the public
+ *   static folder, where anyone who learns the link can read them. That is
+ *   tolerable on a developer machine only. In production private files go to
+ *   uploads/private instead, which is not served: export downloads then fail
+ *   until S3 is set up, rather than leak.
+ */
+const s3Bucket = process.env.S3_BUCKET
+const isProduction = process.env.NODE_ENV === "production"
+
+if (isProduction && !s3Bucket) {
+  console.warn(
+    "S3_BUCKET is not set: private files such as order exports are kept off " +
+      "the public static folder, so their download links will not work."
+  )
+}
+
+const fileModules = s3Bucket
+  ? [
+      {
+        resolve: "@medusajs/medusa/file",
+        options: {
+          providers: [
+            {
+              resolve: "@medusajs/medusa/file-s3",
+              id: "s3",
+              options: {
+                file_url: process.env.S3_FILE_URL,
+                access_key_id: process.env.S3_ACCESS_KEY_ID,
+                secret_access_key: process.env.S3_SECRET_ACCESS_KEY,
+                region: process.env.S3_REGION,
+                bucket: s3Bucket,
+                endpoint: process.env.S3_ENDPOINT,
+              },
+            },
+          ],
+        },
+      },
+    ]
+  : isProduction
+    ? [
+        {
+          resolve: "@medusajs/medusa/file",
+          options: {
+            providers: [
+              {
+                resolve: "@medusajs/medusa/file-local",
+                id: "local",
+                options: {
+                  private_upload_dir: join(process.cwd(), "uploads", "private"),
+                  backend_url: process.env.MEDUSA_BACKEND_URL
+                    ? `${process.env.MEDUSA_BACKEND_URL}/static`
+                    : undefined,
+                },
+              },
+            ],
+          },
+        },
+      ]
+    : []
+
 module.exports = defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
@@ -83,27 +150,7 @@ module.exports = defineConfig({
   modules: [
     ...redisModules,
 
-    // File storage placeholder. Uncomment and set the S3_* variables listed in
-    // .env.example. Until then files use the local provider (apps/backend/static).
-    // {
-    //   resolve: "@medusajs/medusa/file",
-    //   options: {
-    //     providers: [
-    //       {
-    //         resolve: "@medusajs/medusa/file-s3",
-    //         id: "s3",
-    //         options: {
-    //           file_url: process.env.S3_FILE_URL,
-    //           access_key_id: process.env.S3_ACCESS_KEY_ID,
-    //           secret_access_key: process.env.S3_SECRET_ACCESS_KEY,
-    //           region: process.env.S3_REGION,
-    //           bucket: process.env.S3_BUCKET,
-    //           endpoint: process.env.S3_ENDPOINT,
-    //         },
-    //       },
-    //     ],
-    //   },
-    // },
+    ...fileModules,
 
     // Notification placeholder. Uncomment one provider and set its variables
     // from .env.example. Until then notifications are only logged.

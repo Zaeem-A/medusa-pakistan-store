@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { getCategoryByHandle } from "@lib/data/categories"
+import { getSiteOrigin, STORE_NAME } from "@lib/util/site"
 import CategoryTemplate from "@modules/categories/templates"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import { parseOptionValueIds } from "@lib/util/product-option-filters"
@@ -20,17 +21,22 @@ type Props = {
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
   try {
-    const productCategory = await getCategoryByHandle(params.category)
+    const [productCategory, origin] = await Promise.all([
+      getCategoryByHandle(params.category),
+      getSiteOrigin(),
+    ])
 
-    const title = productCategory.name + " | Medusa Store"
+    const description =
+      productCategory.description ||
+      `Shop ${productCategory.name} at ${STORE_NAME}.`
 
-    const description = productCategory.description ?? `${title} category.`
-
+    // An absolute URL. A bare handle resolved against the site root and
+    // pointed search engines at /<handle>, a page that does not exist.
     return {
-      title: `${title} | Medusa Store`,
+      title: productCategory.name,
       description,
       alternates: {
-        canonical: `${params.category.join("/")}`,
+        canonical: `${origin}/${params.countryCode}/categories/${params.category.join("/")}`,
       },
     }
   } catch {

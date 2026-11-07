@@ -21,8 +21,8 @@ export default function TermsPage() {
         pages and at checkout, and may change without notice.
       </p>
       <p>
-        Orders are confirmed by email once payment is received. Returns and
-        refunds are handled according to our return policy.
+        Orders are paid in cash on delivery. Exchanges and returns are handled
+        according to our return policy.
       </p>
     </PolicyPage>
   )

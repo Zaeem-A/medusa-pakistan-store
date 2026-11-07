@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { getCollectionByHandle } from "@lib/data/collections"
+import { getSiteOrigin, STORE_NAME } from "@lib/util/site"
 import CollectionTemplate from "@modules/collections/templates"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import { parseOptionValueIds } from "@lib/util/product-option-filters"
@@ -19,18 +20,22 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
-  const collection = await getCollectionByHandle(params.handle)
+  const [collection, origin] = await Promise.all([
+    getCollectionByHandle(params.handle),
+    getSiteOrigin(),
+  ])
 
   if (!collection) {
     notFound()
   }
 
-  const metadata = {
-    title: `${collection.title} | Medusa Store`,
-    description: `${collection.title} collection`,
-  } as Metadata
-
-  return metadata
+  return {
+    title: collection.title,
+    description: `Shop the ${collection.title} collection at ${STORE_NAME}.`,
+    alternates: {
+      canonical: `${origin}/${params.countryCode}/collections/${collection.handle}`,
+    },
+  }
 }
 
 export default async function CollectionPage(props: Props) {

@@ -1,9 +1,13 @@
 import {
   createInstantSearchAdapter,
-  type MedusaSdkLike,
+  type SearchQuery,
+  type SearchRequester,
+  type SearchResult,
 } from "@medusajs/instantsearch-adapter"
 
 import { sdk } from "@lib/config"
+
+const SEARCH_PATH = "/store/search"
 
 export const PRODUCT_INDEX_NAME = "product"
 
@@ -34,14 +38,78 @@ export const indexedCurrency = (currencyCode: string) => {
 export const priceAttribute = (field: PriceField, currencyCode: string) =>
   `${field}_${indexedCurrency(currencyCode)}`
 
+const postSearch = async (queries: SearchQuery[]): Promise<SearchResult[]> => {
+  const payload = await sdk.client.fetch<
+    { results: SearchResult[] } | SearchResult[]
+  >(SEARCH_PATH, {
+    method: "POST",
+    body: { queries },
+  })
+  const results = Array.isArray(payload) ? payload : payload.results
+
+  if (results?.length !== queries.length) {
+    throw new Error(
+      `Search returned ${results?.length ?? 0} result(s) for ${queries.length} query(s)`
+    )
+  }
+
+  return results
+}
+
+const hasSearchText = (query: SearchQuery) =>
+  typeof query.filters?.q === "string" && query.filters.q.trim() !== ""
+
+const foundNothing = (result: SearchResult) =>
+  result.hits.length === 0 && !result.metadata.skip
+
+/**
+ * Typo tolerance only when the exact search finds nothing, so "kurtii" and
+ * "shalwaar" still find products. Postgres trigram matching also pairs
+ * unrelated words (lawn and lace, shalwar and shawl), so turning it on for
+ * every search would pad results and facet counts for searches that already
+ * work. InstantSearch sends one query per facet group, so the retry happens
+ * only when every query with search text came back empty, which means the
+ * text itself matched nothing rather than a filter excluding everything.
+ */
+const searchWithTypoFallback: SearchRequester = async (queries) => {
+  const results = await postSearch(queries)
+
+  const textQueryIndexes = queries.flatMap((query, index) =>
+    hasSearchText(query) ? [index] : []
+  )
+
+  const textMatchedNothing =
+    textQueryIndexes.length > 0 &&
+    textQueryIndexes.every((index) => foundNothing(results[index]))
+
+  if (!textMatchedNothing) {
+    return results
+  }
+
+  const retried = await postSearch(
+    textQueryIndexes.map((index) => ({
+      ...queries[index],
+      search_options: {
+        ...queries[index].search_options,
+        typo_tolerance: true,
+      },
+    }))
+  )
+
+  textQueryIndexes.forEach((queryIndex, retryIndex) => {
+    results[queryIndex] = retried[retryIndex]
+  })
+
+  return results
+}
+
 /**
  * Shared by the navbar search drawer and the store listing. An empty query
  * searches rather than short-circuiting, which is what the listing needs to
  * show every product before anything is refined.
  */
 export const { searchClient } = createInstantSearchAdapter({
-  sdk: sdk as unknown as MedusaSdkLike,
-  path: "/store/search",
+  requester: searchWithTypoFallback,
   additionalSearchParameters: {
     search_options: {
       match_strategy: "last",

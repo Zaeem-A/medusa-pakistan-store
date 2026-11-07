@@ -1,5 +1,9 @@
-import { Github } from "@medusajs/icons";
-import { Button, Heading } from "@modules/common/components/ui";
+import { STORE_NAME } from "@lib/util/store-name"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import { Button, Heading } from "@modules/common/components/ui"
+
+// A plain hero until the content module (backlog item 2.12) lets staff edit
+// the homepage.
 const Hero = () => {
   return (
     <div className="h-[75vh] w-full border-b border-ui-border-base relative bg-ui-bg-subtle">
@@ -9,23 +13,21 @@ const Hero = () => {
             level="h1"
             className="text-3xl leading-10 text-ui-fg-base font-normal"
           >
-            Ecommerce Starter Template
+            {STORE_NAME}
           </Heading>
           <Heading
             level="h2"
             className="text-3xl leading-10 text-ui-fg-subtle font-normal"
           >
-            Powered by Medusa and Next.js
+            Cash on Delivery available
           </Heading>
         </span>
-        <a href="https://github.com/medusajs/dtc-starter" target="_blank">
-          <Button variant="secondary">
-            View on GitHub <Github />
-          </Button>
-        </a>
+        <LocalizedClientLink href="/store">
+          <Button variant="secondary">Shop now</Button>
+        </LocalizedClientLink>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Hero;
+export default Hero

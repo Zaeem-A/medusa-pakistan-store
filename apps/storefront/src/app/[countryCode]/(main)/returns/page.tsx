@@ -8,7 +8,7 @@ export const revalidate = 60
 
 export const metadata: Metadata = {
   title: "Return policy",
-  description: "How to return items and get a refund.",
+  description: "How to exchange or return items.",
 }
 
 export default async function ReturnsPage(props: {
