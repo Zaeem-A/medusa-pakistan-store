@@ -10,6 +10,40 @@ This repository is the foundation only. The COD placeholder is Medusa's built-in
 | Admin dashboard | `apps/backend` | http://localhost:9000/app |
 | Storefront | `apps/storefront` | http://localhost:8000 |
 
+## What's custom here
+
+The repository starts from Medusa's DTC starter, a Turborepo with the backend and the Next.js storefront. The work on top of it:
+
+- **Pakistan setup.** [`setup-pakistan.ts`](apps/backend/src/scripts/setup-pakistan.ts) sets up:
+  - PKR as the default currency;
+  - the Pakistan region, with Cash on Delivery through Medusa's manual payment provider;
+  - a warehouse with flat-rate shipping;
+  - the storefront's publishable key.
+
+  It is safe to re-run and never overwrites changes made in the admin.
+- **Locked-down store returns.** `POST /store/returns` is open by default in Medusa. [Middleware](apps/backend/src/api/middlewares/restrict-store-returns.ts) now requires the logged-in customer who owns the order. It also blocks fields a customer should not set: the return shipping price, the stock location and "receive now". Covered by unit tests.
+- **Private files.** Order exports no longer land in the public `static` folder in production. [`medusa-config.ts`](apps/backend/medusa-config.ts) uses a private upload folder, or S3 when configured.
+- **COD after an order edit.** An [integration test](apps/backend/integration-tests/http/cod-capture-after-order-edit.spec.ts) shows what Medusa does when staff edit a COD order down before collecting the cash. The original payment is cancelled, a new unpaid one opens for the new total, and the old amount can no longer be captured.
+- **Demo data removal.** [`remove-europe-demo.ts`](apps/backend/src/scripts/remove-europe-demo.ts) lists the seeded Europe data first, then deletes it only on confirmation. It works around a Medusa bug where moving a reservation leaves its quantity reserved at the old location ([medusajs/medusa#17215](https://github.com/medusajs/medusa/issues/17215)).
+- **Storefront.**
+  - Cash on Delivery wording through checkout and order pages.
+  - Store name from an environment variable.
+  - Title templates and canonical URLs.
+  - Related products by category, then collection, without sold-out items.
+  - Search that retries with typo tolerance when an exact search finds nothing.
+  - Prices and regions that refresh instead of being cached forever.
+- **Research.** 18 reports comparing Shopify's features with a Medusa build for the Pakistani market, in [`docs/shopify-research`](docs/shopify-research/README.md), and a phased [implementation backlog](docs/implementation-backlog.md).
+
+## Screenshots
+
+| Storefront | Product page |
+| --- | --- |
+| ![Storefront home page](docs/screenshots/storefront-home.png) | ![Product page](docs/screenshots/product-page.png) |
+
+| Checkout with Cash on Delivery | Admin order awaiting cash |
+| --- | --- |
+| ![Checkout payment step showing Cash on Delivery](docs/screenshots/checkout-cash-on-delivery.png) | ![COD order in the Medusa admin with the payment ready to capture](docs/screenshots/admin-order.png) |
+
 ## Prerequisites
 
 - Node.js 24 LTS. The exact version is in `.nvmrc`, so `nvm use` selects it. Medusa needs 22.23.4 or later, and the storefront does not support Node 25 or later.
@@ -161,8 +195,8 @@ The remaining variables in `apps/storefront/.env.example` are optional and only 
 - **Product edits take about a minute to reach product pages.** The storefront caches product data for 60 seconds, so a new price or stock level can show late on a product page. Store listings read the search index and update within seconds. In dev, Ctrl+Shift+R skips the cache.
 - **Categories and collections use a cache with no time limit.** New ones can need the same cache reset as new regions.
 - **A new currency needs a search index change.** Store listings read prices from the search index, which only holds the currencies listed in `PRICE_CURRENCIES` (`apps/backend/src/search/helpers/pricing.ts`) and `SEARCH_PRICE_CURRENCIES` (`apps/storefront/src/lib/search-client.ts`). Keep the two in sync, then run `npx medusa db:migrate` from `apps/backend`.
-- **The Europe region is demo data.** It comes from the initial seed. It can be browsed at `/dk`, but the setup script takes its warehouse off the sales channel so that Pakistan orders reserve Pakistan stock, which means it has no shipping options at checkout. Remove it and the demo products when the real catalog goes in.
-- **COD has placeholder wording.** Checkout shows the provider as "Manual Payment" with a "for testing purposes" badge until the COD work replaces it.
+- **Skipping step 6 keeps the Europe demo region.** It can be browsed at `/dk`, but the setup script takes its warehouse off the sales channel so that Pakistan orders reserve Pakistan stock, which means it has no shipping options at checkout. The four demo products also come from the seed. Remove them when the real catalog goes in.
+- **Checkout shows a test badge.** Cash on Delivery runs on Medusa's built-in manual payment provider, so checkout shows a "for testing purposes" badge next to it until a custom COD provider replaces it.
 
 ## Further reading
 
