@@ -312,9 +312,10 @@ export default async function removeEuropeDemo({ container }: ExecArgs) {
   }
 
   // Deleting a location does not remove its inventory levels, so they are
-  // soft-deleted here. Not through deleteInventoryLevelsWorkflow: on Medusa
-  // 2.22.2, moving a reservation adds it to the new location's reserved count
-  // but never takes it off the old one, and the workflow refuses to delete a
+  // soft-deleted here. Not through deleteInventoryLevelsWorkflow: up to at
+  // least Medusa 2.22.4, moving a reservation adds it to the new location's
+  // reserved count but never takes it off the old one (medusajs/medusa#17215,
+  // still open in November 2026), and the workflow refuses to delete a
   // level that still shows reserved stock. The check below covers what that
   // refusal guards against.
   if (inventoryLevels.length) {
