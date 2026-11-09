@@ -20,7 +20,7 @@ jest.setTimeout(120 * 1000)
 // staff edit an order down before the cash is collected: is there still a
 // payment that could be captured for the old, higher total?
 //
-// Answer on Medusa 2.22.2: no. Confirming the edit cancels the authorized
+// Answer on Medusa 2.22.2, and still on 2.22.4: no. Confirming the edit cancels the authorized
 // payment and opens a new unpaid collection for the new total, which staff
 // then mark as paid. Code that records cash at delivery must therefore look
 // for that unpaid collection, not capture the original payment.

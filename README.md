@@ -32,6 +32,7 @@ The repository starts from Medusa's DTC starter, a Turborepo with the backend an
   - Related products by category, then collection, without sold-out items.
   - Search that retries with typo tolerance when an exact search finds nothing.
   - Prices and regions that refresh instead of being cached forever.
+- **Bug write-ups.** [Moving a reservation leaves stock reserved at the old location](docs/findings/reservation-move-keeps-stock-reserved.md), a Medusa bug worked around here, and [the starter storefront keeps deleted regions](docs/findings/storefront-keeps-deleted-regions.md), fixed here.
 - **Research.** 18 reports comparing Shopify's features with a Medusa build for the Pakistani market, in [`docs/shopify-research`](docs/shopify-research/README.md), and a phased [implementation backlog](docs/implementation-backlog.md).
 
 ## Screenshots
@@ -95,6 +96,19 @@ cd apps/storefront && npm run dev
 The first page load in dev mode is slow because Next.js compiles each route on demand.
 
 To stop the databases, run `docker compose down`. Your data stays in the named volumes. `docker compose down -v` deletes it.
+
+## Tests
+
+```bash
+cd apps/backend
+npm run test:unit
+
+# Integration tests create and drop their own throwaway database. They read
+# the Postgres login from DB_* variables, not from DATABASE_URL.
+DB_USERNAME=medusa DB_PASSWORD=medusa npm run test:integration:http
+```
+
+The values above are the development defaults from `.env.example`. `DB_HOST` and `DB_PORT` default to `localhost` and `5432`.
 
 ## Admin users
 
