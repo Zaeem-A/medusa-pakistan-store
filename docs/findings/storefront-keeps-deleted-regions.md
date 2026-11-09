@@ -1,7 +1,7 @@
 # The starter storefront keeps deleted regions
 
 - **Affects:** the storefront in Medusa's [DTC starter](https://github.com/medusajs/dtc-starter), checked against its code on 9 November 2026
-- **Upstream:** not reported as of that date
+- **Upstream:** reported as [medusajs/dtc-starter#100](https://github.com/medusajs/dtc-starter/issues/100)
 - **In this repository:** fixed in [`regions.ts`](../../apps/storefront/src/lib/data/regions.ts) and [`middleware.ts`](../../apps/storefront/src/middleware.ts)
 
 ## What happens
